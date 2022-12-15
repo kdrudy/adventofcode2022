@@ -15,6 +15,132 @@ public class AdventOfCode {
 //        day10();
 //        day11();
 //        day12();
+//        day13();
+        InputStream is = AdventOfCode.class.getClassLoader().getResourceAsStream("adventofcode/cavern.txt");
+        Scanner sc = new Scanner(is);
+        List<String[]> rockEdges = new ArrayList<>();
+        while (sc.hasNext()) {
+            String line = sc.nextLine();
+            String[] points = line.split(" -> ");
+            rockEdges.add(points);
+        }
+
+        int minX = rockEdges.stream().flatMap(Arrays::stream).map(s -> s.split(",")[0]).mapToInt(Integer::parseInt).min().orElse(0);
+        int maxX = rockEdges.stream().flatMap(Arrays::stream).map(s -> s.split(",")[0]).mapToInt(Integer::parseInt).max().orElse(Integer.MAX_VALUE);
+        int minY = 0;
+        int maxY = rockEdges.stream().flatMap(Arrays::stream).map(s -> s.split(",")[1]).mapToInt(Integer::parseInt).max().orElse(Integer.MAX_VALUE) + 2;
+
+        System.out.println(minX);
+        System.out.println(maxX);
+        System.out.println(minY);
+        System.out.println(maxY);
+
+        int width = maxX - minX;
+        int height = maxY - minY;
+        char[][] grid = new char[height + 1][width + 1];
+        for (char[] chars : grid) {
+            Arrays.fill(chars, '.');
+        }
+        Arrays.fill(grid[grid.length - 1], '#');
+
+        for (String[] edge : rockEdges) {
+            Point currentPoint = new Point(
+                    Integer.parseInt(edge[0].split(",")[1]) - minY,
+                    Integer.parseInt(edge[0].split(",")[0]) - minX);
+            for (int i = 1; i < edge.length; i++) {
+                grid[currentPoint.x][currentPoint.y] = '#';
+                Point endPoint = new Point(
+                        Integer.parseInt(edge[i].split(",")[1]) - minY,
+                        Integer.parseInt(edge[i].split(",")[0]) - minX);
+                do {
+                    if (currentPoint.x == endPoint.x) {
+                        if (currentPoint.y < endPoint.y) {
+                            currentPoint = new Point(currentPoint.x, currentPoint.y + 1);
+                        } else {
+                            currentPoint = new Point(currentPoint.x, currentPoint.y - 1);
+                        }
+                    } else if (currentPoint.y == endPoint.y) {
+                        if (currentPoint.x < endPoint.x) {
+                            currentPoint = new Point(currentPoint.x + 1, currentPoint.y);
+                        } else {
+                            currentPoint = new Point(currentPoint.x - 1, currentPoint.y);
+                        }
+                    }
+                    grid[currentPoint.x][currentPoint.y] = '#';
+                } while (!currentPoint.equals(endPoint));
+            }
+        }
+        int sandStartY = 500 - minX;
+        List<Point> restingSand = new ArrayList<>();
+
+
+        while (!restingSand.contains(new Point(0, sandStartY))) {
+            Point sand = new Point(0, sandStartY);
+            boolean resting = false;
+            while (!resting) {
+                if (grid[sand.x + 1][sand.y] == '.') {
+                    grid[sand.x][sand.y] = '.';
+                    sand = new Point(sand.x + 1, sand.y);
+                    grid[sand.x][sand.y] = '+';
+                } else if (grid[sand.x + 1][sand.y] == '#' || grid[sand.x + 1][sand.y] == 'o') {
+                    if(sand.y - 1 < 0 || sand.y + 1 > grid[0].length-1) {
+                        grid = expandGrid(grid);
+                        sand.setLocation(sand.x, sand.y+1);
+                        sandStartY++;
+                    }
+                    if (grid[sand.x + 1][sand.y - 1] == '.') {
+                        grid[sand.x][sand.y] = '.';
+                        sand = new Point(sand.x + 1, sand.y - 1);
+                        grid[sand.x][sand.y] = '+';
+                    } else if (grid[sand.x + 1][sand.y + 1] == '.') {
+                        grid[sand.x][sand.y] = '.';
+                        sand = new Point(sand.x + 1, sand.y + 1);
+                        grid[sand.x][sand.y] = '+';
+                    } else {
+                        resting = true;
+                        restingSand.add(sand);
+                        grid[sand.x][sand.y] = 'o';
+                        if(sand.x == 0 && sand.y == sandStartY) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        System.out.println(restingSand.size());
+
+        printGrid(grid);
+    }
+
+    private static char[][] expandGrid(char[][] grid) {
+        for(int i = 0; i<grid.length;i++) {
+            char[] row = grid[i];
+            List<Character> rowList = new ArrayList<>();
+            for(char c : row) {
+                rowList.add(c);
+            }
+            rowList.add(0, '.');
+            rowList.add('.');
+            char[] newRow = new char[rowList.size()];
+            for(int j = 0;j<rowList.size();j++) {
+                newRow[j] = rowList.get(j);
+            }
+            grid[i] = newRow;
+        }
+        Arrays.fill(grid[grid.length-1], '#');
+        return grid;
+    }
+
+    private static void printGrid(char[][] grid) {
+        for (int i = 0; i < grid.length; i++) {
+            for (int j = 0; j < grid[i].length; j++) {
+                System.out.print(grid[i][j]);
+            }
+            System.out.println();
+        }
+    }
+
+    private static void day13() {
         InputStream is = AdventOfCode.class.getClassLoader().getResourceAsStream("adventofcode/pairPackets.txt");
         Scanner sc = new Scanner(is);
 //        int count = 1;
@@ -41,17 +167,17 @@ public class AdventOfCode {
         List<String> packets = new ArrayList<>();
         packets.add("[[2]]");
         packets.add("[[6]]");
-        while(sc.hasNext()) {
+        while (sc.hasNext()) {
             String line = sc.nextLine();
-            if(!line.isEmpty()) {
+            if (!line.isEmpty()) {
                 packets.add(line);
             }
         }
-        packets.sort((a,b) -> isBalanced(b, a));
+        packets.sort((a, b) -> isBalanced(b, a));
         packets.forEach(System.out::println);
-        int first = packets.indexOf("[[2]]")+1;
-        int second = packets.indexOf("[[6]]")+1;
-        System.out.println(first*second);
+        int first = packets.indexOf("[[2]]") + 1;
+        int second = packets.indexOf("[[6]]") + 1;
+        System.out.println(first * second);
     }
 
     private static int isBalanced(String leftString, String rightString) {
@@ -62,22 +188,26 @@ public class AdventOfCode {
 //        if(rightPieces.size() < leftPieces.size()) { return false; }
 
         int b = 0;
-        if(leftPieces.size() == 0 && rightPieces.size() > 0) { return 1;}
-        for(int i = 0;i<leftPieces.size() && b == 0;i++) {
+        if (leftPieces.size() == 0 && rightPieces.size() > 0) {
+            return 1;
+        }
+        for (int i = 0; i < leftPieces.size() && b == 0; i++) {
             String left = leftPieces.get(i);
-            if(rightPieces.size() <= i) { return -1; }
+            if (rightPieces.size() <= i) {
+                return -1;
+            }
             String right = rightPieces.get(i);
-            if(left.startsWith("[") && right.startsWith("[")) {
+            if (left.startsWith("[") && right.startsWith("[")) {
                 b = isBalanced(left, right);
-            } else if(left.startsWith("[")) {
+            } else if (left.startsWith("[")) {
                 b = isBalanced(left, "[" + right + "]");
-            } else if(right.startsWith("[")) {
-                b = isBalanced("[" + left +"]", right);
+            } else if (right.startsWith("[")) {
+                b = isBalanced("[" + left + "]", right);
             } else {
-                if(Integer.parseInt(left) > Integer.parseInt(right)) {
+                if (Integer.parseInt(left) > Integer.parseInt(right)) {
                     b = -1;
                 }
-                if(Integer.parseInt(left) < Integer.parseInt(right)) {
+                if (Integer.parseInt(left) < Integer.parseInt(right)) {
                     b = 1;
                 }
             }
@@ -93,16 +223,16 @@ public class AdventOfCode {
         StringBuilder currentToken = new StringBuilder();
         for (String piece : pieces) {
             if (piece.equals("[")) {
-                if(brackets.size() > 0) {
+                if (brackets.size() > 0) {
                     currentToken.append(piece);
                 }
                 brackets.push(piece);
             } else if (piece.equals("]")) {
-                if(brackets.size() > 1) {
+                if (brackets.size() > 1) {
                     currentToken.append(piece);
                 }
                 brackets.pop();
-                if(brackets.size() == 0 && currentToken.length() > 0) {
+                if (brackets.size() == 0 && currentToken.length() > 0) {
                     tokens.add(currentToken.toString());
                     currentToken = new StringBuilder();
                 }
