@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class AdventOfCode {
 
@@ -16,6 +17,211 @@ public class AdventOfCode {
 //        day11();
 //        day12();
 //        day13();
+//        day14();
+        InputStream is = AdventOfCode.class.getClassLoader().getResourceAsStream("adventofcode/beacons.txt");
+        Scanner sc = new Scanner(is);
+        Map<Point, Integer> distances = new HashMap<>();
+        List<Point> beacons = new ArrayList<>();
+
+        while(sc.hasNext()) {
+            String line = sc.nextLine();
+            String[] parts = line.split(":");
+            String[] sensorParts = parts[0].replace("Sensor at ", "").split(",");
+            Point sensor = new Point(
+                    Integer.parseInt(sensorParts[0].split("=")[1]),
+                    Integer.parseInt(sensorParts[1].split("=")[1])
+            );
+            String[] beaconParts = parts[1].replace(" closest beacon is at ", "").split(",");
+            Point beacon = new Point(
+                    Integer.parseInt(beaconParts[0].split("=")[1]),
+                    Integer.parseInt(beaconParts[1].split("=")[1])
+            );
+//            System.out.println("Sensor: " + sensor);
+//            System.out.println("Beacon: " + beacon);
+//            System.out.println("Distance: " + getManhattanDistance(sensor, beacon));
+//            System.out.println();
+            distances.put(sensor, getManhattanDistance(sensor, beacon));
+            beacons.add(beacon);
+        }
+
+        int minX = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE;
+        int minY = Integer.MAX_VALUE;
+        int maxY = Integer.MIN_VALUE;
+        for(Point sensor : distances.keySet()) {
+            int sensorMinX = (int) (sensor.getX() - distances.get(sensor));
+            int sensorMaxX = (int) (sensor.getX() + distances.get(sensor));
+            int sensorMinY = (int) (sensor.getY() - distances.get(sensor));
+            int sensorMaxY = (int) (sensor.getY() + distances.get(sensor));
+            if(sensorMinX < minX) {
+                minX = sensorMinX;
+            }
+            if(sensorMaxX > maxX) {
+                maxX = sensorMaxX;
+            }
+            if(sensorMinY < minY) {
+                minY = sensorMinY;
+            }
+            if(sensorMaxY > maxY) {
+                maxY = sensorMaxY;
+            }
+        }
+        System.out.println(minX);
+        System.out.println(maxX);
+        System.out.println(minY);
+        System.out.println(maxY);
+
+        int width = maxX - minX;
+        int height = maxY - minY;
+
+        System.out.println(width);
+        System.out.println(height);
+
+//        for(Point current : distances.keySet()) {
+//            int distance = distances.get(current)+1;
+//            int x = current.x + distance;
+//            int y = current.y;
+//
+//            do {
+//                if(x >= 0 && x <= 20 && y >= 0 && y <= 20) {
+//                    boolean covered = false;
+//                    Point checkpoint = new Point(x, y);
+//                    for (Point p : distances.keySet()) {
+//                        int manhattanDistance = getManhattanDistance(checkpoint, p);
+//                        if (manhattanDistance <= distances.get(p)) { //Covered
+//                            covered = true;
+//                            break;
+//                        }
+//                    }
+//                    if (!covered) {
+//                        System.out.println("Found point: " + current);
+//                        System.out.println(current.x * 4000000 + current.y);
+//                    }
+//                }
+//                x--;
+//                y++;
+//            } while(y != current.y + distance);
+//
+//            do {
+//                if(x >= 0 && x <= 20 && y >= 0 && y <= 20) {
+//                    boolean covered = false;
+//                    Point checkpoint = new Point(x, y);
+//                    for (Point p : distances.keySet()) {
+//                        int manhattanDistance = getManhattanDistance(checkpoint, p);
+//                        if (manhattanDistance <= distances.get(p)) { //Covered
+//                            covered = true;
+//                            break;
+//                        }
+//                    }
+//                    if (!covered) {
+//                        System.out.println("Found point: " + current);
+//                        System.out.println(current.x * 4000000 + current.y);
+//                    }
+//                }
+//                x--;
+//                y--;
+//            } while(x != current.x - distance);
+//
+//            do {
+//                if(x >= 0 && x <= 20 && y >= 0 && y <= 20) {
+//                    boolean covered = false;
+//                    Point checkpoint = new Point(x, y);
+//                    for (Point p : distances.keySet()) {
+//                        int manhattanDistance = getManhattanDistance(checkpoint, p);
+//                        if (manhattanDistance <= distances.get(p)) { //Covered
+//                            covered = true;
+//                            break;
+//                        }
+//                    }
+//                    if (!covered) {
+//                        System.out.println("Found point: " + current);
+//                        System.out.println(current.x * 4000000 + current.y);
+//                    }
+//                }
+//                x++;
+//                y--;
+//            } while(y != current.y - distance);
+//
+//            do {
+//                if(x >= 0 && x <= 20 && y >= 0 && y <= 20) {
+//                    boolean covered = false;
+//                    Point checkpoint = new Point(x, y);
+//                    for (Point p : distances.keySet()) {
+//                        int manhattanDistance = getManhattanDistance(checkpoint, p);
+//                        if (manhattanDistance <= distances.get(p)) { //Covered
+//                            covered = true;
+//                            break;
+//                        }
+//                    }
+//                    if (!covered) {
+//                        System.out.println("Found point: " + current);
+//                        System.out.println(current.x * 4000000 + current.y);
+//                    }
+//                }
+//                x++;
+//                y++;
+//            } while(x != current.x + distance);
+//        }
+
+//        int count = 0;
+//        for(int i = 0;i<width;i++) {
+//            Point current = new Point(i+minY, 2000000);
+//            if(beacons.contains(current)) {
+//                continue;
+//            }
+//            for(Point check : distances.keySet()) {
+//                int distance = getManhattanDistance(current, check);
+//                if(distance <= distances.get(check)) { //Covered
+//                    count++;
+//                    break;
+//                }
+//            }
+//        }
+//        System.out.println(count);
+//        IntStream streamX = IntStream.range(0, 4000000);
+//        IntStream streamY = IntStream.range(0, 4000000);
+        IntStream.range(0, 4000000).parallel().forEach(x -> {
+            IntStream.range(0, 4000000).parallel().forEach(y -> {
+                Point current = new Point(x, y);
+                boolean covered = false;
+                for(Point check : distances.keySet()) {
+                    int distance = getManhattanDistance(current, check);
+                    if(distance <= distances.get(check)) { //Covered
+                        covered = true;
+                        break;
+                    }
+                }
+                if(!covered) {
+                    System.out.println("Found point: " + current);
+                    System.out.println(current.x * 4000000 + current.y);
+                }
+            });
+        });
+//        for(int x = 0;x<=4000000;x++) {
+//            for(int y = 0;y<=4000000;y++) {
+//                Point current = new Point(x, y);
+//                boolean covered = false;
+//                for(Point check : distances.keySet()) {
+//                    int distance = getManhattanDistance(current, check);
+//                    if(distance <= distances.get(check)) { //Covered
+//                        covered = true;
+//                        break;
+//                    }
+//                }
+//                if(!covered) {
+//                    System.out.println("Found point: " + current);
+//                    System.out.println(current.x * 4000000 + current.y);
+//                }
+//            }
+//        }
+
+    }
+
+    private static int getManhattanDistance(Point one, Point two) {
+        return Math.abs(one.x - two.x) + Math.abs(one.y - two.y);
+    }
+
+    private static void day14() {
         InputStream is = AdventOfCode.class.getClassLoader().getResourceAsStream("adventofcode/cavern.txt");
         Scanner sc = new Scanner(is);
         List<String[]> rockEdges = new ArrayList<>();
